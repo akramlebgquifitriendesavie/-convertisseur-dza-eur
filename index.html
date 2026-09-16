@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#667eea">
+<title>Convertisseur DZD ⇄ EUR</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    color:#1a1a2e;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .app{
+    width:100%;
+    max-width:480px;
+    background:#ffffff;
+    border-radius:24px;
+    box-shadow:0 20px 60px rgba(0,0,0,.25),0 8px 20px rgba(0,0,0,.15);
+    padding:24px 20px 28px;
+    overflow:hidden;
+  }
+  .header{text-align:center;margin-bottom:18px}
+  .header h1{
+    font-size:22px;
+    font-weight:700;
+    color:#1a1a2e;
+    letter-spacing:-.3px;
+  }
+  .header .subtitle{
+    font-size:13px;
+    color:#6b7280;
+    margin-top:4px;
+    font-weight:500;
+  }
+  .rate-selector{
+    background:#f3f4f6;
+    border-radius:16px;
+    padding:14px 14px 12px;
+    margin-bottom:18px;
+  }
+  .rate-selector label.section-label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:#6b7280;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-bottom:8px;
+  }
+  .rate-options{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .rate-option{
+    position:relative;
+  }
+  .rate-option input{
+    position:absolute;
+    opacity:0;
+    pointer-events:none;
+  }
+  .rate-option .opt{
+    display:block;
+    text-align:center;
+    padding:10px 8px;
+    border-radius:12px;
+    background:#ffffff;
+    border:2px solid #e5e7eb;
+    cursor:pointer;
+    transition:all .15s ease;
+    font-weight:600;
+    font-size:14px;
+    color:#374151;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .rate-option .opt small{
+    display:block;
+    font-weight:500;
+    font-size:11px;
+    color:#9ca3af;
+    margin-top:2px;
+  }
+  .rate-option input:checked + .opt{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    border-color:transparent;
+    color:#fff;
+    box-shadow:0 4px 12px rgba(102,126,234,.4);
+  }
+  .rate-option input:checked + .opt small{color:rgba(255,255,255,.85)}
+  .rate-option input:focus-visible + .opt{
+    outline:3px solid #93c5fd;
+    outline-offset:2px;
+  }
+  .rate-explain{
+    font-size:12px;
+    color:#4b5563;
+    margin-top:10px;
+    line-height:1.45;
+    padding:8px 10px;
+    background:rgba(102,126,234,.08);
+    border-radius:10px;
+    border-left:3px solid #667eea;
+  }
+  .rates-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .rate-input-group label{
+    display:block;
+    font-size:11px;
+    font-weight:600;
+    color:#6b7280;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin-bottom:6px;
+  }
+  .rate-input-wrap{
+    position:relative;
+  }
+  .rate-input-wrap input{
+    width:100%;
+    padding:10px 36px 10px 12px;
+    border:2px solid #e5e7eb;
+    border-radius:10px;
+    font-size:16px;
+    font-weight:600;
+    color:#1a1a2e;
+    background:#fafafa;
+    -webkit-appearance:none;
+    appearance:none;
+    transition:border-color .15s,background .15s;
+    font-family:inherit;
+  }
+  .rate-input-wrap input:focus{
+    outline:none;
+    border-color:#667eea;
+    background:#fff;
+  }
+  .rate-input-wrap .unit{
+    position:absolute;
+    right:10px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:12px;
+    font-weight:600;
+    color:#9ca3af;
+    pointer-events:none;
+  }
+  .converter{
+    background:linear-gradient(135deg,#f9fafb,#f3f4f6);
+    border-radius:18px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .field{margin-bottom:12px;position:relative}
+  .field:last-child{margin-bottom:0}
+  .field-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:6px;
+  }
+  .field-label{
+    font-size:13px;
+    font-weight:700;
+    color:#374151;
+  }
+  .field-label .flag{margin-right:4px}
+  .field-rate{
+    font-size:11px;
+    color:#6b7280;
+    font-weight:500;
+  }
+  .input-wrap{position:relative}
+  .input-wrap input{
+    width:100%;
+    padding:14px 70px 14px 14px;
+    border:2px solid #e5e7eb;
+    border-radius:14px;
+    font-size:20px;
+    font-weight:700;
+    color:#1a1a2e;
+    background:#fff;
+    -webkit-appearance:none;
+    appearance:none;
+    transition:all .15s ease;
+    font-family:inherit;
+    min-height:54px;
+  }
+  .input-wrap input:focus{
+    outline:none;
+    border-color:#667eea;
+    box-shadow:0 0 0 4px rgba(102,126,234,.15);
+  }
+  .input-wrap .currency{
+    position:absolute;
+    right:12px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:13px;
+    font-weight:700;
+    color:#667eea;
+    background:#eef2ff;
+    padding:4px 8px;
+    border-radius:8px;
+    pointer-events:none;
+  }
+  .swap-zone{
+    display:flex;
+    justify-content:center;
+    margin:-6px 0;
+    position:relative;
+    z-index:2;
+  }
+  .swap-btn{
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    border:none;
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:#fff;
+    font-size:22px;
+    cursor:pointer;
+    box-shadow:0 4px 14px rgba(102,126,234,.45);
+    transition:transform .25s ease,box-shadow .15s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .swap-btn:active{transform:scale(.92)}
+  .swap-btn.spin{transform:rotate(180deg)}
+  .actions{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .btn{
+    border:none;
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    transition:transform .12s ease,box-shadow .15s ease;
+    font-family:inherit;
+    -webkit-user-select:none;
+    user-select:none;
+    min-height:46px;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:#fff;
+    box-shadow:0 4px 12px rgba(102,126,234,.35);
+  }
+  .btn-secondary{
+    background:#f3f4f6;
+    color:#374151;
+    border:2px solid #e5e7eb;
+  }
+  .btn:active{transform:scale(.97)}
+  .summary{
+    background:#f9fafb;
+    border-radius:12px;
+    padding:10px 14px;
+    font-size:12px;
+    color:#4b5563;
+    line-height:1.5;
+    text-align:center;
+    border:1px solid #e5e7eb;
+  }
+  .summary b{color:#1a1a2e}
+  .toast{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%) translateY(80px);
+    background:#1a1a2e;
+    color:#fff;
+    padding:10px 18px;
+    border-radius:12px;
+    font-size:13px;
+    font-weight:600;
+    opacity:0;
+    transition:all .25s ease;
+    z-index:99;
+    pointer-events:none;
+    box-shadow:0 8px 24px rgba(0,0,0,.3);
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (min-width:520px){
+    body{padding:24px}
+    .app{padding:28px 26px 32px}
+    .header h1{font-size:26px}
+  }
+  @media (max-height:680px){
+    body{align-items:flex-start;padding-top:14px}
+  }
+</style>
+</head>
+<body>
+  <main class="app" role="main">
+    <header class="header">
+      <h1>💱 Convertisseur DZD ⇄ EUR</h1>
+      <div class="subtitle">Dinar algérien ⇄ Euro — tauxmodifiable</div>
+    </header>
+
+    <section class="rate-selector" aria-label="Choix du taux">
+      <label class="section-label">Type de taux appliqué</label>
+      <div class="rate-options" role="radiogroup" aria-label="Taux achat ou vente">
+        <div class="rate-option">
+          <input type="radio" name="rateType" id="rateVente" value="vente" checked>
+          <label for="rateVente" class="opt">Vente<small>cède des EUR</small></label>
+        </div>
+        <div class="rate-option">
+          <input type="radio" name="rateType" id="rateAchat" value="achat">
+          <label for="rateAchat" class="opt">Achat<small>acquiert des EUR</small></label>
+        </div>
+      </div>
+      <div class="rate-explain" id="rateExplain">
+        <b>Taux de vente</b> : taux auquel on vous <b>vend</b> des euros (vous donnez plus de DZD pour 1 EUR).
+      </div>
+    </section>
+
+    <section class="rates-grid" aria-label="Taux modifiables">
+      <div class="rate-input-group">
+        <label for="tauxVente">Taux vente (1 EUR ⇄)</label>
+        <div class="rate-input-wrap">
+          <input type="number" id="tauxVente" inputmode="decimal" step="0.01" min="0" value="276">
+          <span class="unit">DZD</span>
+        </div>
+      </div>
+      <div class="rate-input-group">
+        <label for="tauxAchat">Taux achat (1 EUR ⇄)</label>
+        <div class="rate-input-wrap">
+          <input type="number" id="tauxAchat" inputmode="decimal" step="0.01" min="0" value="275">
+          <span class="unit">DZD</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="converter" aria-label="Convertisseur">
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label"><span class="flag">🇩🇿</span>Dinar algérien (DZD)</span>
+          <span class="field-rate" id="rateDisplay">1 EUR = 276.00 DZD</span>
+        </div>
+        <div class="input-wrap">
+          <input type="number" id="inputDzd" inputmode="decimal" step="0.01" min="0" placeholder="0.00" autocomplete="off">
+          <span class="currency">DZD</span>
+        </div>
+      </div>
+
+      <div class="swap-zone">
+        <button type="button" class="swap-btn" id="swapBtn" aria-label="Inverser le sens de conversion">🔄</button>
+      </div>
+
+      <div class="field">
+        <div class="field-header">
+          <span class="field-label"><span class="flag">🇪🇺</span>Euro (EUR)</span>
+          <span class="field-rate" id="rateDisplay2">1 EUR = 276.00 DZD</span>
+        </div>
+        <div class="input-wrap">
+          <input type="number" id="inputEur" inputmode="decimal" step="0.01" min="0" placeholder="0.00" autocomplete="off">
+          <span class="currency">EUR</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button type="button" class="btn btn-primary" id="convertBtn">✓ Convertir</button>
+      <button type="button" class="btn btn-secondary" id="resetBtn">↺ Réinitialiser taux</button>
+    </div>
+
+    <div class="summary" id="summary">
+      Saisissez un montant dans l'un des champs pour convertir instantanément.
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+  var DEFAULTS = { vente: 276.00, achat: 275.00 };
+  var STORAGE_KEY = 'dzdEurConverterRates_v1';
+
+  var $ = function(id){ return document.getElementById(id); };
+
+  var elTauxVente = $('tauxVente');
+  var elTauxAchat = $('tauxAchat');
+  var elInputDzd = $('inputDzd');
+  var elInputEur = $('inputEur');
+  var elRateDisplay = $('rateDisplay');
+  var elRateDisplay2 = $('rateDisplay2');
+  var elRateExplain = $('rateExplain');
+  var elSummary = $('summary');
+  var elSwapBtn = $('swapBtn');
+  var elConvertBtn = $('convertBtn');
+  var elResetBtn = $('resetBtn');
+  var elToast = $('toast');
+
+  // direction: 'dzdToEur' (par défaut) ou 'eurToDzd'
+  var direction = 'dzdToEur';
+
+  // ---------- formatage nombres ----------
+  function fmt(n, decimals){
+    if(!isFinite(n)) return '—';
+    var d = (typeof decimals === 'number') ? decimals : 2;
+    // arrondi propre
+    var fixed = Math.abs(n) < 1e-12 ? (0).toFixed(d) : n.toFixed(d);
+    var parts = fixed.split('.');
+    // séparateur de milliers : espace (norme française internationale)
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return parts.join('.');
+  }
+  function parseNum(str){
+    if(str === null || str === undefined) return NaN;
+    var s = String(str).trim().replace(/\s+/g,'').replace(',','.');
+    if(s === '') return NaN;
+    return parseFloat(s);
+  }
+
+  // ---------- stockage ----------
+  function loadRates(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return null;
+      var data = JSON.parse(raw);
+      var v = parseFloat(data.vente);
+      var a = parseFloat(data.achat);
+      if(!isFinite(v) || v <= 0 || !isFinite(a) || a <= 0) return null;
+      return { vente: v, achat: a };
+    }catch(e){
+      return null;
+    }
+  }
+  function saveRates(vente, achat){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        vente: vente,
+        achat: achat,
+        ts: Date.now()
+      }));
+    }catch(e){ /* quota / privé : ignorer */ }
+  }
+
+  // ---------- taux courant ----------
+  function currentRate(){
+    var checked = document.querySelector('input[name="rateType"]:checked');
+    var type = checked ? checked.value : 'vente';
+    if(type === 'achat'){
+      var v = parseFloat(elTauxAchat.value);
+      return isFinite(v) && v > 0 ? v : DEFAULTS.achat;
+    }
+    var v2 = parseFloat(elTauxVente.value);
+    return isFinite(v2) && v2 > 0 ? v2 : DEFAULTS.vente;
+  }
+  function rateType(){
+    var checked = document.querySelector('input[name="rateType"]:checked');
+    return checked ? checked.value : 'vente';
+  }
+  function updateRateDisplays(){
+    var t = currentRate();
+    var txt = '1 EUR = ' + fmt(t) + ' DZD';
+    elRateDisplay.textContent = txt;
+    elRateDisplay2.textContent = txt;
+  }
+  function updateExplain(){
+    var type = rateType();
+    if(type === 'achat'){
+      elRateExplain.innerHTML = '<b>Taux d\'achat</b> : taux auquel on vous <b>achète</b> vos euros (vous recevez moins de DZD pour 1 EUR).';
+    }else{
+      elRateExplain.innerHTML = '<b>Taux de vente</b> : taux auquel on vous <b>vend</b> des euros (vous donnez plus de DZD pour 1 EUR).';
+    }
+  }
+
+  // ---------- conversions ----------
+  function dzdToEur(dzd){
+    return dzd / currentRate();
+  }
+  function eurToDzd(eur){
+    return eur * currentRate();
+  }
+
+  // Quand on modifie l'un, on efface l'autre puis on le recalcule.
+  // On distingue le "focus" pour savoir quel champ a été modifié en dernier.
+  var lastEdited = 'dzd'; // valeur par défaut: la frappe en DZD met à jour EUR
+  function recomputeFrom(source){
+    updateRateDisplays();
+    if(source === 'dzd'){
+      var dzd = parseNum(elInputDzd.value);
+      if(!isFinite(dzd)){
+        elInputEur.value = '';
+        elSummary.innerHTML = 'Saisissez un montant dans l\'un des champs pour convertir instantanément.';
+        return;
+      }
+      var eur = dzdToEur(dzd);
+      elInputEur.value = fmt(eur);
+      elSummary.innerHTML = '<b>' + fmt(dzd) + ' DZD</b> ⇄ <b>' + fmt(eur) + ' EUR</b> &nbsp;·&nbsp; taux ' + rateType() + ' appliqué : 1 EUR = ' + fmt(currentRate()) + ' DZD';
+    }else{
+      var eur2 = parseNum(elInputEur.value);
+      if(!isFinite(eur2)){
+        elInputDzd.value = '';
+        elSummary.innerHTML = 'Saisissez un montant dans l\'un des champs pour convertir instantanément.';
+        return;
+      }
+      var dzd2 = eurToDzd(eur2);
+      elInputDzd.value = fmt(dzd2);
+      elSummary.innerHTML = '<b>' + fmt(eur2) + ' EUR</b> ⇄ <b>' + fmt(dzd2) + ' DZD</b> &nbsp;·&nbsp; taux ' + rateType() + ' appliqué : 1 EUR = ' + fmt(currentRate()) + ' DZD';
+    }
+  }
+
+  function showToast(msg){
+    elToast.textContent = msg;
+    elToast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function(){
+      elToast.classList.remove('show');
+    }, 1800);
+  }
+
+  // ---------- listeners ----------
+  elInputDzd.addEventListener('input', function(){
+    lastEdited = 'dzd';
+    recomputeFrom('dzd');
+  });
+  elInputEur.addEventListener('input', function(){
+    lastEdited = 'eur';
+    recomputeFrom('eur');
+  });
+
+  elTauxVente.addEventListener('input', function(){
+    var v = parseFloat(elTauxVente.value);
+    if(isFinite(v) && v > 0){
+      saveRates(v, parseFloat(elTauxAchat.value) || DEFAULTS.achat);
+      recomputeFrom(lastEdited);
+    }
+  });
+  elTauxAchat.addEventListener('input', function(){
+    var a = parseFloat(elTauxAchat.value);
+    if(isFinite(a) && a > 0){
+      saveRates(parseFloat(elTauxVente.value) || DEFAULTS.vente, a);
+      recomputeFrom(lastEdited);
+    }
+  });
+
+  document.querySelectorAll('input[name="rateType"]').forEach(function(r){
+    r.addEventListener('change', function(){
+      updateExplain();
+      updateRateDisplays();
+      recomputeFrom(lastEdited);
+    });
+  });
+
+  // Bouton "Convertir" : force le recalcul depuis le dernier champ modifié (utile si l'utilisateur veut juste relancer)
+  elConvertBtn.addEventListener('click', function(){
+    recomputeFrom(lastEdited);
+    showToast('Conversion effectuée');
+  });
+
+  // Bouton "Inverser" : échange le sens actif + animation + bascule la valeur source
+  elSwapBtn.addEventListener('click', function(){
+    var btn = elSwapBtn;
+    btn.classList.remove('spin');
+    // forcer reflow pour relancer l'animation
+    void btn.offsetWidth;
+    btn.classList.add('spin');
+
+    if(direction === 'dzdToEur'){
+      direction = 'eurToDzd';
+    }else{
+      direction = 'dzdToEur';
+    }
+    // On inverse le "lastEdited" : si l'utilisateur venait de saisir en DZD,
+    // on bascule pour que la frappe suivante mette à jour l'autre côté de la même manière.
+    lastEdited = (lastEdited === 'dzd') ? 'eur' : 'dzd';
+    // Reconvertir depuis le nouveau "lastEdited" pour cohérence visuelle
+    recomputeFrom(lastEdited);
+    showToast('Sens inversé');
+  });
+
+  // Réinitialisation des taux
+  elResetBtn.addEventListener('click', function(){
+    elTauxVente.value = DEFAULTS.vente.toFixed(2);
+    elTauxAchat.value = DEFAULTS.achat.toFixed(2);
+    saveRates(DEFAULTS.vente, DEFAULTS.achat);
+    updateRateDisplays();
+    recomputeFrom(lastEdited);
+    showToast('Taux réinitialisés (276 / 275)');
+  });
+
+  // ---------- init ----------
+  (function init(){
+    var stored = loadRates();
+    if(stored){
+      elTauxVente.value = stored.vente.toFixed(2);
+      elTauxAchat.value = stored.achat.toFixed(2);
+    }else{
+      elTauxVente.value = DEFAULTS.vente.toFixed(2);
+      elTauxAchat.value = DEFAULTS.achat.toFixed(2);
+    }
+    updateExplain();
+    updateRateDisplays();
+    // Pré-remplir un petit exemple pour démonstration
+    elInputDzd.value = fmt(10000);
+    lastEdited = 'dzd';
+    recomputeFrom('dzd');
+  })();
+
+  // Exposer une API minimale pour tests headless
+  window.__convAPI = {
+    fmt: fmt,
+    dzdToEur: dzdToEur,
+    eurToDzd: eurToDzd,
+    setRates: function(v,a){
+      elTauxVente.value = String(v);
+      elTauxAchat.value = String(a);
+      saveRates(v,a);
+      updateRateDisplays();
+    },
+    getRates: function(){
+      return {
+        vente: parseFloat(elTauxVente.value),
+        achat: parseFloat(elTauxAchat.value),
+        applied: currentRate(),
+        type: rateType()
+      };
+    }
+  };
+})();
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"8607d2a720d14b038279025b2b5a82e5","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
